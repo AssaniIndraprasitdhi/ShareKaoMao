@@ -36,7 +36,7 @@
     }
 
     <div class="row g-3">
-        <!-- ========== Left Column: People + Extras ========== -->
+        <!-- ========== Left Column: People ========== -->
         <div class="col-lg-4">
             <!-- People Card -->
             <div class="card detail-card mb-3">
@@ -51,9 +51,18 @@
                             @foreach (var person in Model.People)
                             {
                                 <div class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
-                                    <span class="fw-medium small">
-                                        <i class="bi bi-person me-1 text-muted"></i>@person.Name
-                                    </span>
+                                    <div>
+                                        <span class="fw-medium small">
+                                            <i class="bi bi-person me-1 text-muted"></i>@person.Name
+                                        </span>
+                                        @if (!string.IsNullOrEmpty(person.Instagram))
+                                        {
+                                            <a href="https://instagram.com/@person.Instagram" target="_blank"
+                                               class="badge bg-ig ms-1 text-decoration-none">
+                                                <i class="bi bi-instagram me-1"></i>@@@person.Instagram
+                                            </a>
+                                        }
+                                    </div>
                                     <form asp-action="DeletePerson"
                                           asp-route-billId="@Model.BillId"
                                           asp-route-personId="@person.Id"
@@ -76,76 +85,31 @@
                     <!-- Add Person Form -->
                     <form asp-action="AddPerson" asp-route-billId="@Model.BillId" method="post">
                         @Html.AntiForgeryToken()
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="Name" class="form-control"
-                                   placeholder="ชื่อเพื่อน..." required />
-                            <button type="submit" class="btn btn-accent">
-                                <i class="bi bi-plus"></i>
-                            </button>
+                        <div class="row g-1 align-items-end">
+                            <div class="col">
+                                <input type="text" name="Name" class="form-control form-control-sm"
+                                       placeholder="ชื่อเพื่อน..." required />
+                            </div>
+                            <div class="col">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-ig-input"><i class="bi bi-instagram"></i></span>
+                                    <input type="text" name="Instagram" class="form-control"
+                                           placeholder="ไอจี (ไม่บังคับ)" />
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-sm btn-accent">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Extras Card -->
-            <div class="card detail-card mb-3">
-                <div class="card-header py-2">
-                    <i class="bi bi-gear-fill me-1"></i>ค่าใช้จ่ายเพิ่มเติม
-                </div>
-                <div class="card-body p-2">
-                    <form asp-action="UpdateExtras" asp-route-billId="@Model.BillId" method="post">
-                        @Html.AntiForgeryToken()
-                        <div class="row g-2 mb-2">
-                            <div class="col-6">
-                                <label class="form-label small mb-0">VAT (%)</label>
-                                <input type="number" name="VatPercent" value="@Model.ExtrasForm.VatPercent"
-                                       class="form-control form-control-sm" step="0.01" min="0" max="100" />
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label small mb-0">Service (%)</label>
-                                <input type="number" name="ServicePercent" value="@Model.ExtrasForm.ServicePercent"
-                                       class="form-control form-control-sm" step="0.01" min="0" max="100" />
-                            </div>
-                        </div>
-                        <div class="row g-2 mb-2">
-                            <div class="col-6">
-                                <label class="form-label small mb-0">ทิป (บาท)</label>
-                                <input type="number" name="TipAmount" value="@Model.ExtrasForm.TipAmount"
-                                       class="form-control form-control-sm" step="0.01" min="0" />
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label small mb-0">ปัดเศษ</label>
-                                <select name="RoundingMode" class="form-select form-select-sm">
-                                    <option value="@RoundingMode.None"
-                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.None ? "selected" : null)">
-                                        ไม่ปัด
-                                    </option>
-                                    <option value="@RoundingMode.Round1"
-                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round1 ? "selected" : null)">
-                                        ปัดขึ้น 1 บาท
-                                    </option>
-                                    <option value="@RoundingMode.Round5"
-                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round5 ? "selected" : null)">
-                                        ปัดขึ้น 5 บาท
-                                    </option>
-                                    <option value="@RoundingMode.Round10"
-                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round10 ? "selected" : null)">
-                                        ปัดขึ้น 10 บาท
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-sm btn-accent">
-                                <i class="bi bi-check-lg me-1"></i>บันทึก
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </div>
 
-        <!-- ========== Right Column: Items + Summary ========== -->
+        <!-- ========== Right Column: Items + Extras + Summary ========== -->
         <div class="col-lg-8">
             <!-- Items Card -->
             <div class="card detail-card mb-3">
@@ -257,6 +221,63 @@
                             <i class="bi bi-info-circle me-1"></i>เพิ่มคนก่อนจึงจะเพิ่มรายการได้
                         </p>
                     }
+                </div>
+            </div>
+
+            <!-- Extras Card -->
+            <div class="card detail-card mb-3">
+                <div class="card-header py-2">
+                    <i class="bi bi-gear-fill me-1"></i>ค่าใช้จ่ายเพิ่มเติม
+                </div>
+                <div class="card-body p-2">
+                    <form asp-action="UpdateExtras" asp-route-billId="@Model.BillId" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-0">VAT (%)</label>
+                                <input type="number" name="VatPercent" value="@Model.ExtrasForm.VatPercent"
+                                       class="form-control form-control-sm" step="0.01" min="0" max="100" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small mb-0">Service (%)</label>
+                                <input type="number" name="ServicePercent" value="@Model.ExtrasForm.ServicePercent"
+                                       class="form-control form-control-sm" step="0.01" min="0" max="100" />
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-0">ทิป (บาท)</label>
+                                <input type="number" name="TipAmount" value="@Model.ExtrasForm.TipAmount"
+                                       class="form-control form-control-sm" step="0.01" min="0" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small mb-0">ปัดเศษ</label>
+                                <select name="RoundingMode" class="form-select form-select-sm">
+                                    <option value="@RoundingMode.None"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.None ? "selected" : null)">
+                                        ไม่ปัด
+                                    </option>
+                                    <option value="@RoundingMode.Round1"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round1 ? "selected" : null)">
+                                        ปัดขึ้น 1 บาท
+                                    </option>
+                                    <option value="@RoundingMode.Round5"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round5 ? "selected" : null)">
+                                        ปัดขึ้น 5 บาท
+                                    </option>
+                                    <option value="@RoundingMode.Round10"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round10 ? "selected" : null)">
+                                        ปัดขึ้น 10 บาท
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-sm btn-accent">
+                                <i class="bi bi-check-lg me-1"></i>บันทึก
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 

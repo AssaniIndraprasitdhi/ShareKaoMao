@@ -8,26 +8,31 @@
     var overlay = document.getElementById('loading-overlay');
     if (!overlay) return;
 
-    // แสดง loading overlay
+    function hideLoading() {
+        overlay.classList.remove('active');
+        overlay.style.display = 'none';
+    }
+
     function showLoading() {
         overlay.style.display = 'flex';
-        // Force reflow แล้วค่อยเพิ่ม class เพื่อให้ transition ทำงาน
         overlay.offsetHeight;
         overlay.classList.add('active');
+
+        // Safety: ซ่อน overlay อัตโนมัติหลัง 5 วินาที กันค้าง
+        setTimeout(hideLoading, 5000);
     }
 
     // แสดง loading เมื่อ form ถูก submit
     document.addEventListener('submit', function (e) {
         var form = e.target;
         if (form && form.tagName === 'FORM') {
-            // รอสักครู่ก่อนแสดง loading (ป้องกัน flash สำหรับ action ที่เร็ว)
             setTimeout(function () {
                 showLoading();
             }, 100);
         }
     });
 
-    // แสดง loading เมื่อคลิกลิงก์ภายใน (ไม่ใช่ # หรือ javascript:)
+    // แสดง loading เมื่อคลิกลิงก์ภายใน
     document.addEventListener('click', function (e) {
         var link = e.target.closest('a[href]');
         if (!link) return;
@@ -41,11 +46,11 @@
         }, 100);
     });
 
-    // ซ่อน loading เมื่อหน้าโหลดเสร็จ (กรณี bfcache / back button)
-    window.addEventListener('pageshow', function () {
-        overlay.classList.remove('active');
-        overlay.style.display = 'none';
-    });
+    // ซ่อน loading เมื่อหน้าโหลดเสร็จ
+    window.addEventListener('pageshow', hideLoading);
+
+    // ซ่อน loading เมื่อ DOM โหลดเสร็จ (fallback)
+    document.addEventListener('DOMContentLoaded', hideLoading);
 
     // Auto-dismiss alerts หลัง 5 วินาที
     var alerts = document.querySelectorAll('.alert-dismissible');

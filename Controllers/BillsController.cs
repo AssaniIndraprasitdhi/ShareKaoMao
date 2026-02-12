@@ -85,7 +85,8 @@ namespace ShareKaoMao.Controllers
                     .Select(p => new PersonDisplayViewModel
                     {
                         Id = p.Id,
-                        Name = p.Name
+                        Name = p.Name,
+                        Instagram = p.Instagram
                     }).ToList(),
                 Items = bill.Items
                     .OrderBy(i => i.Id)
@@ -145,9 +146,12 @@ namespace ShareKaoMao.Controllers
                 return RedirectToAction("Details", new { id = billId });
             }
 
+            var instagram = model.Instagram?.Trim();
+
             var person = new Person
             {
                 Name = name,
+                Instagram = string.IsNullOrWhiteSpace(instagram) ? null : instagram,
                 BillId = billId
             };
 

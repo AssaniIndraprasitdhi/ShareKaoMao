@@ -11,6 +11,9 @@ namespace ShareKaoMao.Models
         [StringLength(100)]
         public string Name { get; set; }
 
+        [StringLength(100)]
+        public string Instagram { get; set; }
+
         public int BillId { get; set; }
         public Bill Bill { get; set; }
 
