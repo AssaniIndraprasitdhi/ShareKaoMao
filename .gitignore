@@ -1,0 +1,27 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+## VS / Rider
+.vs/
+.idea/
+*.DotSettings.user
+
+## Environment (ห้าม commit ข้อมูลจริง)
+.env
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Claude
+.claude/

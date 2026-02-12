@@ -1,0 +1,52 @@
+@model List<BillListItemViewModel>
+@{
+    ViewData["Title"] = "หน้าแรก";
+}
+
+<div class="container-fluid px-0">
+    <!-- Hero Section -->
+    <section class="hero-section d-flex align-items-center justify-content-center">
+        <div class="text-center">
+            <div class="hero-icon mb-3">
+                <i class="bi bi-cup-straw"></i>
+            </div>
+            <h1 class="hero-title">ShareKaoMao</h1>
+            <p class="hero-subtitle">หารค่าเหล้ากับเพื่อน ง่ายนิดเดียว</p>
+            <a asp-controller="Bills" asp-action="Create" class="btn btn-create btn-lg mt-3">
+                <i class="bi bi-plus-circle me-2"></i>สร้างบิลใหม่
+            </a>
+        </div>
+    </section>
+
+    <!-- Recent Bills -->
+    @if (Model != null && Model.Count > 0)
+    {
+        <section class="container py-4">
+            <h5 class="section-title mb-3">
+                <i class="bi bi-clock-history me-2"></i>บิลล่าสุด
+            </h5>
+            <div class="row g-3">
+                @foreach (var bill in Model)
+                {
+                    <div class="col-md-4 col-lg-3">
+                        <a asp-controller="Bills" asp-action="Details" asp-route-id="@bill.Id"
+                           class="text-decoration-none">
+                            <div class="card bill-card h-100">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title fw-semibold text-truncate mb-2">@bill.Title</h6>
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span><i class="bi bi-people me-1"></i>@bill.PeopleCount คน</span>
+                                        <span><i class="bi bi-receipt me-1"></i>@bill.ItemCount รายการ</span>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="bi bi-calendar3 me-1"></i>@bill.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+</div>

@@ -1,0 +1,375 @@
+@model BillDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container-fluid py-3 px-3 px-md-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="bi bi-receipt me-2 text-accent"></i>@Model.Title
+            </h4>
+            <small class="text-muted">
+                <i class="bi bi-calendar3 me-1"></i>@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+            </small>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-house me-1"></i>หน้าแรก
+        </a>
+    </div>
+
+    <!-- Alerts -->
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show py-2 mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>@ViewBag.Error
+            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show py-2 mb-3" role="alert">
+            <i class="bi bi-check-circle me-1"></i>@ViewBag.Success
+            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-3">
+        <!-- ========== Left Column: People + Extras ========== -->
+        <div class="col-lg-4">
+            <!-- People Card -->
+            <div class="card detail-card mb-3">
+                <div class="card-header py-2">
+                    <i class="bi bi-people-fill me-1"></i>คนร่วมวง
+                    <span class="badge bg-accent ms-1">@Model.People.Count</span>
+                </div>
+                <div class="card-body p-2">
+                    @if (Model.People.Count > 0)
+                    {
+                        <div class="list-group list-group-flush mb-2">
+                            @foreach (var person in Model.People)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
+                                    <span class="fw-medium small">
+                                        <i class="bi bi-person me-1 text-muted"></i>@person.Name
+                                    </span>
+                                    <form asp-action="DeletePerson"
+                                          asp-route-billId="@Model.BillId"
+                                          asp-route-personId="@person.Id"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('ลบ @person.Name ออกจากบิล?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0 py-0 px-1">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small text-center my-2">ยังไม่มีคนในบิล</p>
+                    }
+
+                    <!-- Add Person Form -->
+                    <form asp-action="AddPerson" asp-route-billId="@Model.BillId" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="Name" class="form-control"
+                                   placeholder="ชื่อเพื่อน..." required />
+                            <button type="submit" class="btn btn-accent">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Extras Card -->
+            <div class="card detail-card mb-3">
+                <div class="card-header py-2">
+                    <i class="bi bi-gear-fill me-1"></i>ค่าใช้จ่ายเพิ่มเติม
+                </div>
+                <div class="card-body p-2">
+                    <form asp-action="UpdateExtras" asp-route-billId="@Model.BillId" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-0">VAT (%)</label>
+                                <input type="number" name="VatPercent" value="@Model.ExtrasForm.VatPercent"
+                                       class="form-control form-control-sm" step="0.01" min="0" max="100" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small mb-0">Service (%)</label>
+                                <input type="number" name="ServicePercent" value="@Model.ExtrasForm.ServicePercent"
+                                       class="form-control form-control-sm" step="0.01" min="0" max="100" />
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-0">ทิป (บาท)</label>
+                                <input type="number" name="TipAmount" value="@Model.ExtrasForm.TipAmount"
+                                       class="form-control form-control-sm" step="0.01" min="0" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small mb-0">ปัดเศษ</label>
+                                <select name="RoundingMode" class="form-select form-select-sm">
+                                    <option value="@RoundingMode.None"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.None ? "selected" : null)">
+                                        ไม่ปัด
+                                    </option>
+                                    <option value="@RoundingMode.Round1"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round1 ? "selected" : null)">
+                                        ปัดขึ้น 1 บาท
+                                    </option>
+                                    <option value="@RoundingMode.Round5"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round5 ? "selected" : null)">
+                                        ปัดขึ้น 5 บาท
+                                    </option>
+                                    <option value="@RoundingMode.Round10"
+                                            selected="@(Model.ExtrasForm.RoundingMode == RoundingMode.Round10 ? "selected" : null)">
+                                        ปัดขึ้น 10 บาท
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-sm btn-accent">
+                                <i class="bi bi-check-lg me-1"></i>บันทึก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Right Column: Items + Summary ========== -->
+        <div class="col-lg-8">
+            <!-- Items Card -->
+            <div class="card detail-card mb-3">
+                <div class="card-header py-2">
+                    <i class="bi bi-list-check me-1"></i>รายการ
+                    <span class="badge bg-accent ms-1">@Model.Items.Count</span>
+                </div>
+                <div class="card-body p-2">
+                    @if (Model.Items.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-2 align-middle">
+                                <thead>
+                                    <tr class="small text-muted">
+                                        <th>รายการ</th>
+                                        <th class="text-end">ราคา</th>
+                                        <th class="text-center">จำนวน</th>
+                                        <th class="text-end">รวม</th>
+                                        <th>แชร์กับ</th>
+                                        <th style="width:40px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td class="fw-medium small">@item.Name</td>
+                                            <td class="text-end small">@item.Price.ToString("N2")</td>
+                                            <td class="text-center small">@item.Quantity</td>
+                                            <td class="text-end small fw-semibold">@item.Total.ToString("N2")</td>
+                                            <td class="small">
+                                                @foreach (var name in item.SharedWith)
+                                                {
+                                                    <span class="badge bg-person-tag me-1">@name</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <form asp-action="DeleteItem"
+                                                      asp-route-billId="@Model.BillId"
+                                                      asp-route-itemId="@item.Id"
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('ลบรายการ @item.Name?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 py-0 px-1">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small text-center my-2">ยังไม่มีรายการ</p>
+                    }
+
+                    <!-- Add Item Form -->
+                    @if (Model.People.Count > 0)
+                    {
+                        <hr class="my-2" />
+                        <form asp-action="AddItem" asp-route-billId="@Model.BillId" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-0">ชื่อรายการ</label>
+                                    <input type="text" name="Name" class="form-control form-control-sm"
+                                           placeholder="เช่น เบียร์ช้าง" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small mb-0">ราคา</label>
+                                    <input type="number" name="Price" class="form-control form-control-sm"
+                                           step="0.01" min="0.01" required />
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label small mb-0">จำนวน</label>
+                                    <input type="number" name="Quantity" value="1"
+                                           class="form-control form-control-sm" min="1" required />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small mb-0">แชร์กับใคร</label>
+                                    <div class="person-checkbox-group">
+                                        @foreach (var person in Model.People)
+                                        {
+                                            <div class="form-check form-check-inline small">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="SelectedPersonIds" value="@person.Id"
+                                                       id="person_@person.Id" checked />
+                                                <label class="form-check-label" for="person_@person.Id">
+                                                    @person.Name
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-sm btn-accent w-100">
+                                        <i class="bi bi-plus me-1"></i>เพิ่ม
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <p class="text-muted small text-center mt-2">
+                            <i class="bi bi-info-circle me-1"></i>เพิ่มคนก่อนจึงจะเพิ่มรายการได้
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            @if (Model.Summaries.Count > 0)
+            {
+                <div class="card detail-card summary-card">
+                    <div class="card-header py-2 summary-header">
+                        <i class="bi bi-calculator me-1"></i>สรุปยอดต่อคน
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0 align-middle">
+                                <thead>
+                                    <tr class="small text-muted">
+                                        <th>ชื่อ</th>
+                                        <th class="text-end">ยอดรายการ</th>
+                                        @if (Model.VatPercent > 0)
+                                        {
+                                            <th class="text-end">VAT</th>
+                                        }
+                                        @if (Model.ServicePercent > 0)
+                                        {
+                                            <th class="text-end">Service</th>
+                                        }
+                                        @if (Model.TipAmount > 0)
+                                        {
+                                            <th class="text-end">Tip</th>
+                                        }
+                                        <th class="text-end">รวม</th>
+                                        @if (Model.RoundingMode != RoundingMode.None)
+                                        {
+                                            <th class="text-end">ปัดเศษ</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in Model.Summaries)
+                                    {
+                                        <tr>
+                                            <td class="fw-medium small">
+                                                <i class="bi bi-person me-1 text-muted"></i>@s.Name
+                                            </td>
+                                            <td class="text-end small">@s.Subtotal.ToString("N2")</td>
+                                            @if (Model.VatPercent > 0)
+                                            {
+                                                <td class="text-end small">@s.VatShare.ToString("N2")</td>
+                                            }
+                                            @if (Model.ServicePercent > 0)
+                                            {
+                                                <td class="text-end small">@s.ServiceShare.ToString("N2")</td>
+                                            }
+                                            @if (Model.TipAmount > 0)
+                                            {
+                                                <td class="text-end small">@s.TipShare.ToString("N2")</td>
+                                            }
+                                            <td class="text-end small">@s.GrandTotal.ToString("N2")</td>
+                                            @if (Model.RoundingMode != RoundingMode.None)
+                                            {
+                                                <td class="text-end small fw-bold text-accent">
+                                                    @s.RoundedTotal.ToString("N2")
+                                                </td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active fw-bold">
+                                        <td>รวมทั้งหมด</td>
+                                        <td class="text-end">@Model.Summaries.Sum(s => s.Subtotal).ToString("N2")</td>
+                                        @if (Model.VatPercent > 0)
+                                        {
+                                            <td class="text-end">@Model.Summaries.Sum(s => s.VatShare).ToString("N2")</td>
+                                        }
+                                        @if (Model.ServicePercent > 0)
+                                        {
+                                            <td class="text-end">@Model.Summaries.Sum(s => s.ServiceShare).ToString("N2")</td>
+                                        }
+                                        @if (Model.TipAmount > 0)
+                                        {
+                                            <td class="text-end">@Model.Summaries.Sum(s => s.TipShare).ToString("N2")</td>
+                                        }
+                                        <td class="text-end">@Model.Summaries.Sum(s => s.GrandTotal).ToString("N2")</td>
+                                        @if (Model.RoundingMode != RoundingMode.None)
+                                        {
+                                            <td class="text-end text-accent">@Model.BillTotal.ToString("N2")</td>
+                                        }
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Per-person summary cards (mobile-friendly) -->
+                        <div class="d-md-none mt-3">
+                            @foreach (var s in Model.Summaries)
+                            {
+                                <div class="card mb-2 person-summary-mobile">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold">
+                                                <i class="bi bi-person-fill me-1"></i>@s.Name
+                                            </span>
+                                            <span class="fs-5 fw-bold text-accent">
+                                                @(Model.RoundingMode != RoundingMode.None ? s.RoundedTotal.ToString("N2") : s.GrandTotal.ToString("N2")) ฿
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
